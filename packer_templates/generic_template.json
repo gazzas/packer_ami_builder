@@ -1,0 +1,64 @@
+{
+    "variables": {
+        "region"              : "{{ user `target_region` }}",
+        "role_name"           : "generic",
+        "source_ami_id"       : "ami-0a889af68c555f069",
+        "destination_ami_name": "packer-linux-debian9-{{user `role_name`}}-{{isotime \"2006-01-02\"}}",
+        "deployment_engine_location": "/home/deployment_engine",
+        "deployment_engine_source_files":"./",
+        "provisioning_scripts_location":"./provisioning_scripts"
+    },
+    "builders": [
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "ami_description": "Packer created image",
+            "ami_name": "{{ user `destination_ami_name` }}",
+            "ami_users": "{{ user `ami_share_accounts` }}",
+            "force_deregister": "False",
+            "instance_type": "t2.micro",
+            "region": "{{ user `region` }}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "source_ami": "{{user `source_ami_id`}}",
+            "ssh_username": "admin",
+            "tags": {
+                "Name": "{{ user `destination_ami_name` }}",
+                "Description": "Image create with Packer"
+            },
+            "type": "amazon-ebs"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline":[
+                "sudo mkdir -p {{ user `deployment_engine_location` }}",
+                "sudo chmod 777 {{ user `deployment_engine_location` }} -R"
+            ]
+        },
+        {
+            "destination": "{{ user `deployment_engine_location` }}/",
+            "type": "file",
+            "source": "{{ user `deployment_engine_source_files` }}"
+        },
+        {
+            "type":"shell",
+            "environment_vars":[
+                "DEPLOYMENT_ENGINE_LOCATION={{ user `deployment_engine_location` }}",
+                "DEPLOYMENT_ENGINE_SOURCE_FILES={{ user `deployment_engine_source_files` }}",
+                "PROVISIONING_SCRIPTS_LOCATION={{ user `provisioning_scripts_location` }}"
+            ],
+            "scripts":[
+                "{{user `provisioning_scripts_location`}}/configure_os.sh",
+                "{{user `provisioning_scripts_location`}}/deploy_cwagent.sh",
+                "{{user `provisioning_scripts_location`}}/deploy_docker.sh",
+                "{{user `provisioning_scripts_location`}}/deploy_ecsagent.sh",
+                "{{user `provisioning_scripts_location`}}/deploy_nfsclient.sh",
+                "{{user `provisioning_scripts_location`}}/deploy_ntpclient.sh",
+                "{{user `provisioning_scripts_location`}}/configure_cwagent.sh",
+                "{{user `provisioning_scripts_location`}}/configure_ecsagent.sh",
+                "{{user `provisioning_scripts_location`}}/configure_patchlevelreporting.sh",
+                "{{user `provisioning_scripts_location`}}/cleanup.sh"
+            ]
+        }
+    ]
+}
