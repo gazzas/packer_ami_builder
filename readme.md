@@ -29,9 +29,9 @@ where *** is region code name
 
 Run packer build:
 ```
-packer validate --var "target_region=***" ./packer_templates/apache_brick_template.json
+packer build --var "target_region=***" ./packer_templates/apache_brick_template.json
 or
-packer validate --var "target_region=***" ./packer_templates/generic_brick_template.json
+packer build --var "target_region=***" ./packer_templates/generic_brick_template.json
 where *** is region code name
 ```
 
